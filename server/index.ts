@@ -1,13 +1,29 @@
-// ✅ Load environment variables from .env
+// ✅ Load environment variables
 import 'dotenv/config';
 
 import express, { type Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// ✅ MongoDB connection using env variable
+const mongoURI = process.env.MONGODB_URI;
+
+if (!mongoURI) {
+  console.error("❌ MONGODB_URI not found in environment variables");
+  process.exit(1); // Exit if not defined
+}
+
+mongoose.connect(mongoURI)
+  .then(() => console.log("✅ Connected to MongoDB Atlas"))
+  .catch(err => {
+    console.error("❌ MongoDB connection failed:", err);
+    process.exit(1);
+  });
 
 // ✅ Request Logging Middleware
 app.use((req, res, next) => {
@@ -41,30 +57,26 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // ✅ Optional debug log to verify env loaded
-  console.log("MongoDB URI:", process.env.MONGODB_URI);
-
   const server = await registerRoutes(app);
 
-  // ✅ Global Error Handler
+  // ✅ Error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
     res.status(status).json({ message });
     throw err;
   });
 
-  // ✅ Vite Dev Middleware (only in development)
+  // ✅ Use Vite in dev only
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // ✅ Start the server on port 5000
-  const port = 5000;
+  // ✅ Listen on Render-compatible port
+  const port = process.env.PORT || 5000;
   server.listen(port, "0.0.0.0", () => {
-    log(`serving on port ${port}`);
+    log(`🌐 Server running on port ${port}`);
   });
 })();
