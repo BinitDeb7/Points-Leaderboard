@@ -21,10 +21,10 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework
-- **Database**: PostgreSQL with Drizzle ORM
-- **Database Provider**: Neon Database (serverless PostgreSQL)
+- **Database**: MongoDB Atlas (cloud-hosted MongoDB)
+- **Database Driver**: Native MongoDB driver for Node.js
 - **API Pattern**: RESTful API endpoints
-- **Session Management**: PostgreSQL session store
+- **Storage Layer**: Abstracted storage interface with MongoDB and in-memory implementations
 - **Development**: Hot reload with tsx
 
 ### Project Structure
@@ -47,9 +47,9 @@ Preferred communication style: Simple, everyday language.
 ## Key Components
 
 ### Database Schema
-- **Users Table**: Stores user information (id, name, points, avatar, created_at)
-- **Claim History Table**: Tracks every point claim (id, user_id, points_awarded, claimed_at)
-- **Relationships**: One-to-many between users and claim history
+- **Users Collection**: Stores user information (id, name, points, avatar, createdAt)
+- **ClaimHistory Collection**: Tracks every point claim (id, userId, pointsAwarded, claimedAt)
+- **Relationships**: One-to-many between users and claim history using userId field
 
 ### API Endpoints
 - `GET /api/users` - Retrieve all users with current points
@@ -65,8 +65,9 @@ Preferred communication style: Simple, everyday language.
 
 ### Storage Layer
 - **Memory Storage**: In-memory fallback for development (server/storage.ts)
-- **Database Integration**: Drizzle ORM with PostgreSQL for production
+- **MongoDB Atlas**: Cloud-hosted MongoDB for production data persistence
 - **Data Abstraction**: IStorage interface for easy storage provider switching
+- **Auto-fallback**: Automatically falls back to memory storage if MongoDB connection fails
 
 ## Data Flow
 
@@ -86,33 +87,31 @@ Preferred communication style: Simple, everyday language.
 - **Icons**: Lucide React for consistent iconography
 
 ### Backend Dependencies
-- **Database**: Neon Database (serverless PostgreSQL)
-- **ORM**: Drizzle ORM for type-safe database operations
-- **Session Storage**: connect-pg-simple for PostgreSQL session management
+- **Database**: MongoDB Atlas (cloud-hosted MongoDB)
+- **Database Driver**: Native MongoDB driver for Node.js
 - **Development**: tsx for TypeScript execution in development
 
 ### Build Tools
 - **Vite**: Frontend build tool and development server
 - **ESBuild**: Server-side bundling for production
 - **TypeScript**: Type checking and compilation
-- **Drizzle Kit**: Database migration and schema management
 
 ## Deployment Strategy
 
 ### Development Environment
 - **Frontend**: Vite dev server with hot reload
 - **Backend**: tsx with file watching for auto-restart
-- **Database**: Migrations run via `drizzle-kit push`
+- **Database**: MongoDB Atlas connection or fallback to memory storage
 
 ### Production Build
 - **Frontend**: Vite builds optimized static assets to `dist/public`
 - **Backend**: ESBuild bundles server code to `dist/index.js`
-- **Database**: PostgreSQL connection via DATABASE_URL environment variable
+- **Database**: MongoDB Atlas connection via MONGODB_URI environment variable
 - **Deployment**: Single node.js process serving both API and static files
 
 ### Environment Configuration
-- **DATABASE_URL**: PostgreSQL connection string (required)
+- **MONGODB_URI**: MongoDB Atlas connection string (optional - falls back to memory storage)
 - **NODE_ENV**: Environment mode (development/production)
-- **Session Management**: PostgreSQL-backed sessions for scalability
+- **Auto-fallback**: Gracefully handles MongoDB connection failures
 
 The application uses a modern full-stack TypeScript architecture with strong type safety throughout the data flow, real-time updates, and a clean separation between frontend and backend concerns.
